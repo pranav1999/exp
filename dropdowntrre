@@ -1,0 +1,118 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-size: 16px;
+}
+
+#root {
+  height: 100%;
+}
+
+.App {
+  height: 100%;
+}
+
+/* Custom Tree Outer
+ *
+ * The top padding will create the necessary space
+ * to receive the search box.
+ */
+
+.tree-outer-wrap {
+  background-color: aliceblue;
+  display: flex;
+  height: 100%;
+  padding: 2.875rem 0 1rem 0;
+  overflow: hidden;
+}
+
+/* Custom Tree Inner
+ *
+ * This style will set the correct size of the scroll-component
+ * and trigger the vertical scroll when needed.
+ */
+
+.tree-inner-wrap {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+/*
+ * Custom Tree
+ */
+
+/* Hide the selected elements list */
+.react-dropdown-tree-select .dropdown .dropdown-trigger {
+  display: none;
+}
+
+.react-dropdown-tree-select .dropdown {
+  width: 100%;
+}
+
+.react-dropdown-tree-select .dropdown .dropdown-trigger {
+  width: 100%;
+}
+
+.react-dropdown-tree-select {
+  font-size: 0.75rem;
+}
+
+.react-dropdown-tree-select .dropdown {
+  position: static;
+}
+.react-dropdown-tree-select .dropdown .dropdown-content {
+  background: none;
+  box-shadow: none;
+  border: none;
+  position: static;
+}
+
+.react-dropdown-tree-select .dropdown .dropdown-trigger.arrow {
+  cursor: initial;
+}
+
+.tag-item .search {
+  padding: 0.25rem 0.75rem;
+}
+
+.react-dropdown-tree-select .dropdown .dropdown-content {
+  margin: 0;
+  padding: 0;
+}
+
+/* Set the search box styles */
+.react-dropdown-tree-select .dropdown .dropdown-content .search {
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 3px solid #e2e8f0;
+  padding: 0.5rem;
+  position: absolute;
+  /* Do you remember the padding that we set before, it was to create the space to receive the search box. */
+  transform: translateY(-2.875rem);
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 15;
+}
+.react-dropdown-tree-select .dropdown .dropdown-content ul {
+  padding: 0.25rem;
+}
+
+/*
+ * React Customscroll
+ */
+
+.react-customscroll {
+  overflow: initial !important;
+}
+
+.react-customscroll-scrollbar-area {
+  border-radius: 9999px;
+}
