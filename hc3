@@ -202,4 +202,14 @@ with app.app.app_context():
 
 print("Initialization complete.")
 --------------------------------------------------------------------------------------------------
-  
+  flask_app/
+├── app.py
+├── init_db.py
+├── models.py
+├── controllers/
+│   └── item_controller.py
+├── openapi/
+│   └── openapi.yaml
+├── schemas.py
+└── database.db
+
