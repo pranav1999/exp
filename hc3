@@ -246,4 +246,5 @@ import uvicorn
 
 if __name__ == '__main__':
     uvicorn.run("asgi:asgi_app", host="127.0.0.1", port=5000, log_level="info")
-
+---------------------------------------------------------
+http://localhost:5000/v1.0/ui
