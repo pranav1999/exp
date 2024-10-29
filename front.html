@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Terminal</title>
+  <style>
+    body { background: black; color: white; font-family: monospace; }
+    #terminal { width: 100%; height: 400px; overflow-y: auto; }
+    #input { width: 100%; background: #111; color: white; border: none; }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <input type="text" id="input" placeholder="Enter command..." autofocus />
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const input = document.getElementById('input');
+    const ws = new WebSocket('ws://localhost:8000/ws/client1/127.0.0.1');  // Change IP as needed
+
+    ws.onmessage = (event) => {
+      terminal.innerHTML += event.data + '<br>';
+      terminal.scrollTop = terminal.scrollHeight;
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        ws.send(input.value);
+        terminal.innerHTML += '> ' + input.value + '<br>';
+        input.value = '';
+      }
+    });
+  </script>
+</body>
+</html>
