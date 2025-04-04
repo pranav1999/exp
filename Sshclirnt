@@ -1,0 +1,119 @@
+import paramiko
+import time
+
+def log_to_file(log_path, content):
+    with open(log_path, "a") as f:
+        f.write(content + "\n")
+
+def connect_via_jump(jump_host, jump_user, jump_pass, target_ip, target_user, target_pass):
+    print("[*] Connecting to jump server...")
+    jump_ssh = paramiko.SSHClient()
+    jump_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    jump_ssh.connect(jump_host, username=jump_user, password=jump_pass)
+
+    print("[*] Creating transport tunnel to target switch via jump server...")
+    jump_transport = jump_ssh.get_transport()
+    dest_addr = (target_ip, 22)
+    local_addr = ('', 0)
+    channel = jump_transport.open_channel("direct-tcpip", dest_addr, local_addr)
+
+    target_ssh = paramiko.SSHClient()
+    target_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    target_ssh.connect(target_ip, username=target_user, password=target_pass, sock=channel)
+    return target_ssh, jump_ssh
+
+def upgrade_nxos(ssh, image_name, log_path):
+    shell = ssh.invoke_shell()
+    time.sleep(1)
+    shell.recv(9999)
+
+    def send_cmd(cmd, wait=3):
+        shell.send(cmd + "\n")
+        time.sleep(wait)
+        output = shell.recv(9999).decode()
+        print(output)
+        log_to_file(log_path, output)
+        return output
+
+    # Backup config
+    print("[*] Backing up config...")
+    log_to_file(log_path, "[*] Backing up config...")
+    send_cmd("copy running-config startup-config", 5)
+
+    # Version before upgrade
+    print("[*] Capturing current version...")
+    log_to_file(log_path, "[*] Capturing current version...")
+    version_before = send_cmd("show version", 5)
+
+    # Begin upgrade
+    print("[*] Starting upgrade...")
+    log_to_file(log_path, "[*] Starting upgrade...")
+    shell.send(f"install all nxos bootflash:{image_name}\n")
+    time.sleep(5)
+
+    buffer = ""
+    timeout = 1200  # 20 mins max
+    start_time = time.time()
+
+    while True:
+        if shell.recv_ready():
+            output = shell.recv(65535).decode("utf-8")
+            buffer += output
+            print(output.strip())
+            log_to_file(log_path, output.strip())
+
+            if "Do you want to continue" in output:
+                shell.send("y\n")
+            elif "Do you want to proceed" in output:
+                shell.send("y\n")
+            elif "This command will reboot" in output:
+                shell.send("y\n")
+
+        if "Install operation completed successfully" in buffer:
+            print("[+] Upgrade completed successfully.")
+            log_to_file(log_path, "[+] Upgrade completed successfully.")
+            break
+
+        if time.time() - start_time > timeout:
+            print("[!] Timeout reached.")
+            log_to_file(log_path, "[!] Timeout reached.")
+            break
+
+        time.sleep(3)
+
+    # Wait for reboot and reconnect manually if required
+    print("[*] Waiting for switch to reload... please reconnect manually if needed.")
+    log_to_file(log_path, "[*] Waiting for reload... reconnect manually.")
+
+def main():
+    # === Jump Server Info ===
+    jump_host = "192.168.100.1"
+    jump_user = "jumpadmin"
+    jump_pass = "jumppassword"
+
+    # === Switch Info ===
+    switch_ip = "10.10.10.10"
+    switch_user = "admin"
+    switch_pass = "yourpassword"
+    image_name = "nxos.9.3.5.bin"
+    log_path = "upgrade_log.txt"
+
+    # Clear log at start
+    open(log_path, "w").close()
+
+    try:
+        ssh_to_switch, ssh_jump = connect_via_jump(jump_host, jump_user, jump_pass,
+                                                   switch_ip, switch_user, switch_pass)
+
+        upgrade_nxos(ssh_to_switch, image_name, log_path)
+
+        ssh_to_switch.close()
+        ssh_jump.close()
+        print("[*] All sessions closed. Check upgrade_log.txt for full details.")
+
+    except Exception as e:
+        print(f"[!] ERROR: {e}")
+        log_to_file(log_path, f"[!] ERROR: {e}")
+
+if __name__ == "__main__":
+    main()
